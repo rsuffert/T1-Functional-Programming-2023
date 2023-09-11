@@ -9,7 +9,7 @@ bin2dec :: [Int] -> Int
 bin2dec [] = 0
 bin2dec (b:bs) | b==1      = b*2^(length bs) + bin2dec bs
                | b==0      = bin2dec bs
-               | otherwise = throw (InvalidParameterException "Non-binary value (0 or 1) provided in the list")
+               | otherwise = throw (InvalidParameterException "Non-binary value (something that's neither 0 nor 1) provided in the list")
 
 -- Exercicio 2
 
