@@ -12,7 +12,7 @@ bin2dec :: [Int] -> Int
 bin2dec [] = 0
 bin2dec (b:bs) | b==1      = b*2^(length bs) + bin2dec bs
                | b==0      = bin2dec bs
-               | otherwise = throw (InvalidParameterException "Non-binary value provided in the list")
+               | otherwise = throw (InvalidParameterException "Cannot convert non-binary list")
 
 -- Exercicio 2
 -- example usage:
@@ -35,7 +35,7 @@ bincompl2dec :: [Int] -> Int
 bincompl2dec [] = throw (InvalidParameterException "Cannot convert empty list")
 bincompl2dec (b:bs) | b==0      = bin2dec bs
                     | b==1      = (-1) * bin2dec unsignedBinary
-                    | otherwise = throw (InvalidParameterException "Non-binary value provided in the list")
+                    | otherwise = throw (InvalidParameterException "Cannot convert non-binary list")
                     where
                         unsignedBinary = incrementBinaryList negate'
                         negate' = [0^bit | bit <-bs]
