@@ -68,7 +68,13 @@ frac2bin n = (intPart, fracPart)
                 overflow = [-1 | _ <- [(1::Int)..16]]
 
 -- Exercicio 6
-
+-- example usage
+-- ghci> bin2frac ([0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0],[1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0])
+-- 16392.625
+bin2frac :: ([Int], [Int]) -> Double
+bin2frac (ds, bs) | length ds/=16 = throw (InvalidParameterException "The decimal part must bo 16 bits long")
+                  | length bs/=16 = throw (InvalidParameterException "The fractional part must be 16 bits long")
+                  | otherwise     = fromIntegral((bincompl2dec ds)) + (bin2fractional bs)
 
 -- Helper functions
 incrementBinaryList :: (Eq a, Num a) => [a] -> [a]
@@ -89,3 +95,11 @@ fractional2bin n = let conversion=(fractional2binHelper n 1 16) in (conversion +
                         fractional2binHelper val iterations limit | iterations<=(limit::Int) = let (int, doub)=properFraction(val*2) 
                                                                                                in (int:fractional2binHelper doub (iterations+1) limit)
                                                                   | otherwise               = [-1] -- signal overflow
+
+bin2fractional :: [Int] -> Double
+bin2fractional [] = 0
+bin2fractional fs = bin2fractionalHelper fs 0
+                    where
+                        bin2fractionalHelper :: [Int] -> Int -> Double
+                        bin2fractionalHelper [] _                = 0
+                        bin2fractionalHelper (fr:frs) iterations = ((fromIntegral fr*0.5)/(2^iterations)) + (bin2fractionalHelper frs (iterations+1))
