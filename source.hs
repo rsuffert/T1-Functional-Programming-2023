@@ -43,17 +43,29 @@ bincompl2dec (b:bs) | b==0      = bin2dec bs
 -- Exercicio 4
 -- example usage:
 -- ghci> dec2bincompl (-10) 7
--- [1,1,1,1,0,1,1,0]
+-- [1,1,1,0,1,1,0]
 dec2bincompl :: Int -> Int -> [Int]
 dec2bincompl d n | n<=0 = []
-                 | d>=0 = 0:(dec2bin d n)
+                 | d>=0 = 0:(dec2bin d (n-1))
                  | otherwise  = 1:(incrementBinaryList (negate' unsignedBinary)) -- negative d
                  where
-                    unsignedBinary = (dec2bin ((-1)*d) n)
+                    unsignedBinary = (dec2bin ((-1)*d) (n-1))
                     negate' bs = [0^bit | bit <-bs]
 
 -- Exercicio 5
-
+-- example usage:
+-- ghci> frac2bin (-10.0625)
+-- ([1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0],[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0])
+frac2bin :: Double -> ([Int], [Int])
+frac2bin n = (intPart, fracPart)
+             where
+                intPart  = let res=dec2bincompl(first(properFraction n)) 16
+                           in (if length res<=16 then res else overflow)
+                fracPart = let res=fractional2bin(abs(second(properFraction n::(Integer, Double))))
+                           in (if res!!(length res-1)/=(-1) then res else overflow)
+                first(x, _) = x
+                second(_, x) = x
+                overflow = [-1 | _ <- [(1::Int)..16]]
 
 -- Exercicio 6
 
@@ -69,3 +81,11 @@ incrementBinaryList bs = trimLeadingZero(reverse(incrementHelper(reverse(0:bs)))
         trimLeadingZero []    = []
         trimLeadingZero(0:xs) = xs
         trimLeadingZero(x:xs) = x:xs
+
+fractional2bin :: Double -> [Int]
+fractional2bin n = let conversion=(fractional2binHelper n 1 16) in (conversion ++ (replicate (16-length conversion) 0))
+                    where
+                        fractional2binHelper 0 _ _ = []
+                        fractional2binHelper val iterations limit | iterations<=(limit::Int) = let (int, doub)=properFraction(val*2) 
+                                                                                               in (int:fractional2binHelper doub (iterations+1) limit)
+                                                                  | otherwise               = [-1] -- signal overflow
