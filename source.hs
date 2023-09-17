@@ -74,7 +74,8 @@ frac2bin n = (intPart, fracPart)
 bin2frac :: ([Int], [Int]) -> Double
 bin2frac (ds, bs) | length ds/=16 = throw (InvalidParameterException "The decimal part must bo 16 bits long")
                   | length bs/=16 = throw (InvalidParameterException "The fractional part must be 16 bits long")
-                  | otherwise     = fromIntegral((bincompl2dec ds)) + (bin2fractional bs)
+                  | otherwise     = let intPart=fromIntegral((bincompl2dec ds)) 
+                                    in (if intPart<0 then intPart - bin2fractional bs else intPart + bin2fractional bs)
 
 -- Helper functions
 incrementBinaryList :: (Eq a, Num a) => [a] -> [a]
