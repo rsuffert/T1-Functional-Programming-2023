@@ -18,9 +18,11 @@ bin2dec (b:bs) | b==1      = b*2^(length bs) + bin2dec bs
 -- example usage:
 -- ghci> dec2bin 5 5
 -- [0, 0, 1, 0, 1]
+-- Note: we ignore the second parameter (size) if it is less than the minimum amount of bits necessary to represent the requested number and raise an exception if it is negative
 dec2bin :: Integral a => a -> a -> [a]
-dec2bin decn size | decn==0   = fillZeros [0] (size-1)
-                  | decn<0    = throw (InvalidParameterException "Function only takes positive integers as input")
+dec2bin decn size | size<0    = throw (InvalidParameterException "Number of bits of the resulting binary number cannot be negative")
+                  | decn==0   = fillZeros [0] (size-1)
+                  | decn<0    = throw (InvalidParameterException "Function only takes positive integers as input for conversion")
                   | otherwise = fillZeros (dec2binHelper decn) size
                   where
                     fillZeros xs n = replicate (fromIntegral n - length xs) 0 ++ xs
@@ -44,8 +46,9 @@ bincompl2dec (b:bs) | b==0      = bin2dec bs
 -- example usage:
 -- ghci> dec2bincompl (-10) 7
 -- [1,1,1,0,1,1,0]
+-- Note: we ignore the second parameter (size) if it is less than the minimum amount of bits necessary to represent the requested number and raise an exception if it is negative
 dec2bincompl :: Int -> Int -> [Int]
-dec2bincompl d n | n<=0 = []
+dec2bincompl d n | n<=0 = throw (InvalidParameterException "Number of bits of the resulting binary number cannot be negative")
                  | d>=0 = 0:(dec2bin d (n-1))
                  | otherwise  = 1:(incrementBinaryList (negate' unsignedBinary)) -- negative d
                  where
@@ -72,7 +75,7 @@ frac2bin n = (intPart, fracPart)
 -- ghci> bin2frac ([0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0],[1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0])
 -- 16392.625
 bin2frac :: ([Int], [Int]) -> Double
-bin2frac (ds, bs) | length ds/=16 = throw (InvalidParameterException "The decimal part must bo 16 bits long")
+bin2frac (ds, bs) | length ds/=16 = throw (InvalidParameterException "The decimal part must be 16 bits long")
                   | length bs/=16 = throw (InvalidParameterException "The fractional part must be 16 bits long")
                   | otherwise     = let intPart=fromIntegral((bincompl2dec ds)) 
                                     in (if intPart<0 then intPart - bin2fractional bs else intPart + bin2fractional bs)
@@ -103,4 +106,5 @@ bin2fractional fs = bin2fractionalHelper fs 0
                     where
                         bin2fractionalHelper :: [Int] -> Int -> Double
                         bin2fractionalHelper [] _                = 0
-                        bin2fractionalHelper (fr:frs) iterations = ((fromIntegral fr*0.5)/(2^iterations)) + (bin2fractionalHelper frs (iterations+1))
+                        bin2fractionalHelper (fr:frs) iterations | fr/=0 && fr/=1 = throw (InvalidParameterException "Cannot convert non-binary list")
+                                                                 | otherwise = ((fromIntegral fr*0.5)/(2^iterations)) + (bin2fractionalHelper frs (iterations+1))
